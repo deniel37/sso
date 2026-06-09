@@ -21,6 +21,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // sign-in to a single organization, point the issuer at a tenant-specific
       // URL: https://login.microsoftonline.com/<tenant-id>/v2.0
       issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+      // Force Microsoft to show the account picker on every sign-in. Without
+      // this, Microsoft's own SSO session silently re-issues a token after we
+      // sign out — bouncing the user straight back to the dashboard. With
+      // `select_account`, the user always sees "Pick an account" and can switch.
+      authorization: { params: { prompt: "select_account" } },
     }),
   ],
   session: { strategy: "jwt" },
