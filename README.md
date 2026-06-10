@@ -30,17 +30,47 @@ AUTH_MICROSOFT_ENTRA_ID_ISSUER="https://login.microsoftonline.com/common/v2.0"
 
 Quick summary of the steps:
 
-1. Sign in to the [Azure portal](https://portal.azure.com).
+1. Create a Microsoft (Azure) account and sign in to the [Azure portal](https://portal.azure.com).
 2. Search for **Microsoft Entra ID**.
 3. In the left sidebar, expand the **Manage** section.
 4. Select **App registrations**.
-5. Click **New registration** (top menu).
-6. Provide an application **name**.
-7. **Supported account types** → choose *"Accounts in any organizational directory (Any Microsoft Entra ID tenant — Multitenant) and personal Microsoft accounts."* 
-8. Choose a platform: **Web**.
-9. Set the **Redirect URI**: `http://localhost:3000/api/auth/callback/microsoft-entra-id`
-10. Click **Register**.
-11. Open your app under **All applications** — copy the **Application (client) ID** and **Directory (tenant) ID**.
-12. Go to **Certificates & secrets** (Client credentials).
-13. Click **New client secret**, then set a description and expiry.
-14. Copy the secret **Value** (shown only once) into `AUTH_MICROSOFT_ENTRA_ID_SECRET` in `.env.local`.
+5. Choose **New registration** from the top menu.
+6. Provide the application **name**.
+7. **Supported account types** → choose *"Accounts in any organizational directory (Any Microsoft Entra ID tenant — Multitenant) and personal Microsoft accounts."*
+8. Choose your platform: **Web** (or **SPA**).
+9. Provide the **Redirect URI**: `http://localhost:3000/api/auth/callback/microsoft-entra-id`
+10. Click the **Register** button.
+11. Click your app under the **All applications** section.
+12. Copy the **Application (client) ID** and **Directory (tenant) ID** from the Overview page.
+13. Go to **Certificates & secrets** (Client credentials).
+14. Click **New client secret**, then provide a description and expiration.
+15. Copy the secret **Value** (shown only once) into `AUTH_MICROSOFT_ENTRA_ID_SECRET` in `.env.local`.
+
+
+# Facebook Environment Variables
+
+Facebook is wired up exactly like Microsoft — same Auth.js flow, a second button on the
+login page. Add these to `.env.local` (Facebook is OAuth2, so there is **no** issuer var):
+
+```env
+AUTH_FACEBOOK_ID=
+AUTH_FACEBOOK_SECRET=
+```
+
+### What each variable means
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `AUTH_FACEBOOK_ID` | The **App ID** of your Facebook app. Public, not a secret. | [developers.facebook.com](https://developers.facebook.com) → your app → **App settings → Basic**. |
+| `AUTH_FACEBOOK_SECRET` | The **App Secret**. **Highly sensitive** — treat it like a password. | Same **Basic** page → click **Show** next to **App Secret**. |
+
+## Facebook app setup
+
+1. Go to [developers.facebook.com](https://developers.facebook.com) and create an app (type **Consumer** — "Authenticate and request data from users").
+2. Add the **Facebook Login** product to the app.
+3. Under **Facebook Login → Settings**, add the **Valid OAuth Redirect URI**:
+   `http://localhost:3000/api/auth/callback/facebook`
+4. Keep the app in **Development** mode for local testing (or add your account under **App roles → Roles** as a Tester) — `localhost` callbacks only work in Development mode.
+5. From **App settings → Basic**, copy the **App ID** → `AUTH_FACEBOOK_ID` and the **App Secret** → `AUTH_FACEBOOK_SECRET` into `.env.local`.
+
+> **Production note:** in Live mode Facebook requires an **HTTPS** redirect URI and may require **App Review** before it returns `email` for users who aren't app testers.
