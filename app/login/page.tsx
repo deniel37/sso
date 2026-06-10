@@ -134,22 +134,26 @@ export default async function LoginPage() {
             <ComingSoonBadge />
           </button>
 
-          {/* Facebook — not yet enabled */}
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title="Coming soon"
-            className="mt-3 flex h-11 w-full cursor-not-allowed items-center gap-3 rounded-lg border border-black/[.08] bg-white px-4 text-sm font-medium text-zinc-700 opacity-60 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-300"
+          {/* Facebook — the live secondary provider */}
+          <form
+            className="mt-3"
+            action={async () => {
+              "use server"
+              await signIn("facebook", { redirectTo: "/dashboard" })
+            }}
           >
-            <FacebookLogo />
-            Continue with Facebook
-            <ComingSoonBadge />
-          </button>
+            <button
+              type="submit"
+              className="flex h-11 w-full items-center gap-3 rounded-lg border border-black/[.08] bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/[.06]"
+            >
+              <FacebookLogo />
+              Continue with Facebook
+            </button>
+          </form>
         </div>
 
         <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          Secured by Microsoft Entra ID · Auth.js
+          Secured by Auth.js
         </p>
       </div>
     </main>
