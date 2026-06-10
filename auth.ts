@@ -1,56 +1,75 @@
 import NextAuth from "next-auth"
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
+import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
 
 /**
- * Auth.js (NextAuth v5) configuration.
+ * Auth.js (NextAuth v5) configuration — the single source of truth for auth.
  *
- * Single source of truth: exports the `handlers` for the route handler,
- * and `auth` / `signIn` / `signOut` for use in Server Components, Server
- * Actions, and `proxy.ts`.
+ * Exports consumed across the app:
+ *   - `handlers`           → mounted by app/api/auth/[...nextauth]/route.ts
+ *   - `auth`               → session checks in Server Components and proxy.ts
+ *   - `signIn` / `signOut` → invoked from server actions
  *
- * No database adapter is configured, so sessions are stored as a stateless,
- * encrypted JWT cookie.
+ * No database adapter is configured, so sessions are stateless: the profile is
+ * carried in an encrypted JWT cookie.
  */
+
+// Facebook's default avatar is only 50x50. We request a 200x200 picture and
+// reuse this exact endpoint for both the provider's `userinfo.url` and the
+// custom fetch below, so the two can never drift out of sync.
+const FACEBOOK_USERINFO_URL =
+  "https://graph.facebook.com/me?fields=id,name,email,picture.width(200).height(200)"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     MicrosoftEntraID({
       clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
       clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-      // The `common` authority (set via AUTH_MICROSOFT_ENTRA_ID_ISSUER) lets
-      // ANY Microsoft account sign in — work, school, or personal. To restrict
-      // sign-in to a single organization, point the issuer at a tenant-specific
-      // URL: https://login.microsoftonline.com/<tenant-id>/v2.0
+      // The `common` authority (via AUTH_MICROSOFT_ENTRA_ID_ISSUER) admits ANY
+      // Microsoft account — work, school, or personal. Point the issuer at a
+      // tenant URL (…/<tenant-id>/v2.0) to restrict sign-in to one organization.
       issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
-      // Force Microsoft to show the account picker on every sign-in. Without
-      // this, Microsoft's own SSO session silently re-issues a token after we
-      // sign out — bouncing the user straight back to the dashboard. With
-      // `select_account`, the user always sees "Pick an account" and can switch.
+      // Force the account picker on every sign-in. Without it, Microsoft's own
+      // SSO session silently re-issues a token after we sign out, bouncing the
+      // user straight back to the dashboard.
       authorization: { params: { prompt: "select_account" } },
     }),
-    // Facebook is OAuth2 (not OIDC): no issuer. `clientId`/`clientSecret` are
-    // also auto-inferred from AUTH_FACEBOOK_ID / AUTH_FACEBOOK_SECRET, but we
-    // pass them explicitly to mirror the Microsoft provider above.
+
+    // Google is OIDC: the issuer (https://accounts.google.com) is built into the
+    // provider, so there is no issuer env var, and the default profile mapping
+    // already maps Google's durable `picture` URL to `image` — no userinfo /
+    // profile override needed. `prompt: select_account` mirrors Microsoft above.
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: { params: { prompt: "select_account" } },
+    }),
+
+    // Facebook is OAuth2 (not OIDC): no issuer. The default config fetches only a
+    // 50x50 avatar, so we override `userinfo` to request the larger picture while
+    // keeping the bearer token on the call.
     Facebook({
       clientId: process.env.AUTH_FACEBOOK_ID,
       clientSecret: process.env.AUTH_FACEBOOK_SECRET,
-      // The default Facebook config fetches only a 50x50 avatar. Request a
-      // larger picture (keeping the bearer token on the userinfo call) and use
-      // the signed CDN URL Facebook returns for THIS user, which reliably
-      // resolves. When the account has no photo, Facebook returns a generic
-      // silhouette — treat that as "no image" so the dashboard falls back to
-      // the initial-letter avatar instead of showing a blank circle.
       userinfo: {
-        url: "https://graph.facebook.com/me?fields=id,name,email,picture.width(200).height(200)",
+        url: FACEBOOK_USERINFO_URL,
         async request({ tokens }: { tokens: { access_token?: string } }) {
-          const res = await fetch(
-            "https://graph.facebook.com/me?fields=id,name,email,picture.width(200).height(200)",
-            { headers: { Authorization: `Bearer ${tokens.access_token}` } },
-          )
+          const res = await fetch(FACEBOOK_USERINFO_URL, {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+          })
+          // Fail loud on a Graph error. Otherwise an error body (`{ error: … }`)
+          // is accepted as the profile and a "ghost" session with an empty user
+          // is minted, instead of the sign-in aborting.
+          if (!res.ok) {
+            throw new Error(`Facebook userinfo request failed (HTTP ${res.status})`)
+          }
           return res.json()
         },
       },
       profile(profile) {
+        // When the account has no photo Facebook returns a generic silhouette;
+        // treat that as "no image" so the dashboard falls back to the initial.
         const picture = profile.picture?.data as
           | { url: string; is_silhouette?: boolean }
           | undefined
@@ -66,9 +85,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    // Persist which provider the user signed in with onto the stateless JWT so
-    // the dashboard can label the session ("Signed in with Microsoft" / "…with
-    // Facebook"). `account` is only present on the initial sign-in.
+    // Persist which provider the user signed in with onto the stateless JWT, so
+    // the dashboard can label the session ("Signed in with …"). `account` is
+    // only present on the initial sign-in.
     jwt({ token, account }) {
       if (account) token.provider = account.provider
       return token
