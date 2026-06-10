@@ -34,6 +34,7 @@ export default async function DashboardPage() {
   // (persisted onto the JWT by the `jwt` / `session` callbacks in auth.ts).
   const PROVIDER_LABELS: Record<string, string> = {
     "microsoft-entra-id": "Microsoft",
+    google: "Google",
     facebook: "Facebook",
   }
   const providerLabel = session.provider
