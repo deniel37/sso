@@ -47,6 +47,54 @@ Quick summary of the steps:
 15. Copy the secret **Value** (shown only once) into `AUTH_MICROSOFT_ENTRA_ID_SECRET` in `.env.local`.
 
 
+# Google Environment Variables
+
+All values live in `.env.local` (never commit real secrets). Google is OIDC, so the
+issuer is built into the provider and there is **no** issuer variable:
+
+```env
+# Google — from your Google Cloud Console OAuth client.
+AUTH_GOOGLE_ID=369758713515-lt3pa7d0c6ccfe77fllifs0ucninp8n8.apps.googleusercontent.com
+AUTH_GOOGLE_SECRET=<your client secret VALUE — keep only in .env.local>
+```
+
+### What each variable means
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `AUTH_GOOGLE_ID` | The **Client ID** of your Google OAuth client (ends in `.apps.googleusercontent.com`). Public, not a secret. | [console.cloud.google.com](https://console.cloud.google.com) → **APIs & Services → Credentials** → your OAuth client. |
+| `AUTH_GOOGLE_SECRET` | The OAuth **Client secret**. **Highly sensitive** — treat it like a password. | Same **Credentials** page → your OAuth client → **Client secret**. |
+
+
+## Google / Google Cloud setup
+
+📄 **Full walkthrough with screenshots:** [Google SSO setup doc](https://docs.google.com/document/d/1s-OEYmmrkkrsl7CYh2RJmoIXupymskdZ1Yn7RaVcRc0/edit?tab=t.htgjfv5rtmhk#heading=h.w93kfj3p3yuv)
+
+Quick summary of the steps:
+
+1. Create a Google (Cloud) account and sign in to the [Google Cloud Console](https://console.cloud.google.com).
+2. Open the **project picker** (Ctrl+O) at the top.
+3. Click **New project**, give it a name, and create it.
+4. Open the **Navigation menu** (☰) on the left side.
+5. Select **APIs & Services**.
+6. Select **Credentials**.
+7. Click **Configure consent screen** (the yellow warning banner).
+8. Click the **Get started** button.
+9. Provide the **App name**.
+10. Provide the **User support email**.
+11. Select **External** for **Audience**.
+12. Provide your **Contact information**.
+13. Agree to the policy and click **Create**.
+14. Click **Create OAuth client** (top-right).
+15. Select **Web application** as the **Application type**.
+16. Provide a **client name**.
+17. Add the **Authorized JavaScript origins**: `http://localhost:3000`
+18. Add the **Authorized redirect URIs**: `http://localhost:3000/api/auth/callback/google` (a mismatch causes `Error 400: redirect_uri_mismatch`).
+19. Click the **Create** button.
+20. Copy the **Client ID** → `AUTH_GOOGLE_ID` and the **Client secret** → `AUTH_GOOGLE_SECRET` in `.env.local`.
+21. (Optional) **Download the JSON** file as a backup of the credentials.
+
+
 # Facebook Environment Variables
 
 All values live in `.env.local` (never commit real secrets). Facebook is OAuth2, so there
