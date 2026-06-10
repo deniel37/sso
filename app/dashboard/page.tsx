@@ -30,14 +30,25 @@ export default async function DashboardPage() {
   const initial = (name ?? email ?? "?").charAt(0).toUpperCase()
   const firstName = name ? name.split(" ")[0] : null
 
+  // Label the session by the provider the user actually signed in with
+  // (persisted onto the JWT by the `jwt` / `session` callbacks in auth.ts).
+  const PROVIDER_LABELS: Record<string, string> = {
+    "microsoft-entra-id": "Microsoft",
+    facebook: "Facebook",
+  }
+  const providerLabel = session.provider
+    ? PROVIDER_LABELS[session.provider]
+    : undefined
+
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
       <div className="w-full max-w-sm">
         {/* Hero: avatar + greeting */}
         <div className="mb-8 flex flex-col items-center text-center">
           {image ? (
-            // The Microsoft provider returns the avatar as a base64 data URI,
-            // which next/image cannot optimize — a plain <img> is correct here.
+            // Providers return avatars from different hosts (Microsoft as a
+            // base64 data URI, Facebook as a Graph URL); a plain <img> avoids
+            // per-host next/image config.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={image}
@@ -56,7 +67,7 @@ export default async function DashboardPage() {
 
           <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-            Signed in with Microsoft
+            {providerLabel ? `Signed in with ${providerLabel}` : "Signed in"}
           </span>
         </div>
 
@@ -100,7 +111,7 @@ export default async function DashboardPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          Secured by Microsoft Entra ID · Auth.js
+          Secured by Auth.js
         </p>
       </div>
     </main>
