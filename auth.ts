@@ -34,17 +34,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Facebook({
       clientId: process.env.AUTH_FACEBOOK_ID,
       clientSecret: process.env.AUTH_FACEBOOK_SECRET,
-      // The default Facebook config maps a tiny (50x50), short-lived lookaside
-      // picture URL (profile.picture.data.url) — which gets baked into the
-      // stateless JWT at sign-in and often renders blank once it expires. Map
-      // the stable Graph picture endpoint (keyed by the user id) at a larger
-      // size instead, so the dashboard avatar always loads.
+      // The default Facebook config fetches only a 50x50 avatar. Request a
+      // larger picture (keeping the bearer token on the userinfo call) and use
+      // the signed CDN URL Facebook returns for THIS user, which reliably
+      // resolves. When the account has no photo, Facebook returns a generic
+      // silhouette — treat that as "no image" so the dashboard falls back to
+      // the initial-letter avatar instead of showing a blank circle.
+      userinfo: {
+        url: "https://graph.facebook.com/me?fields=id,name,email,picture.width(200).height(200)",
+        async request({ tokens }: { tokens: { access_token?: string } }) {
+          const res = await fetch(
+            "https://graph.facebook.com/me?fields=id,name,email,picture.width(200).height(200)",
+            { headers: { Authorization: `Bearer ${tokens.access_token}` } },
+          )
+          return res.json()
+        },
+      },
       profile(profile) {
+        const picture = profile.picture?.data as
+          | { url: string; is_silhouette?: boolean }
+          | undefined
         return {
           id: profile.id,
           name: profile.name,
           email: profile.email,
-          image: `https://graph.facebook.com/${profile.id}/picture?type=large`,
+          image: picture && !picture.is_silhouette ? picture.url : null,
         }
       },
     }),
