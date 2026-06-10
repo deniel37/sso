@@ -34,6 +34,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Facebook({
       clientId: process.env.AUTH_FACEBOOK_ID,
       clientSecret: process.env.AUTH_FACEBOOK_SECRET,
+      // The default Facebook config maps a tiny (50x50), short-lived lookaside
+      // picture URL (profile.picture.data.url) — which gets baked into the
+      // stateless JWT at sign-in and often renders blank once it expires. Map
+      // the stable Graph picture endpoint (keyed by the user id) at a larger
+      // size instead, so the dashboard avatar always loads.
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          image: `https://graph.facebook.com/${profile.id}/picture?type=large`,
+        }
+      },
     }),
   ],
   session: { strategy: "jwt" },
