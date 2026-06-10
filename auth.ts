@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
+import Facebook from "next-auth/providers/facebook"
 
 /**
  * Auth.js (NextAuth v5) configuration.
@@ -27,7 +28,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // `select_account`, the user always sees "Pick an account" and can switch.
       authorization: { params: { prompt: "select_account" } },
     }),
+    // Facebook is OAuth2 (not OIDC): no issuer. `clientId`/`clientSecret` are
+    // also auto-inferred from AUTH_FACEBOOK_ID / AUTH_FACEBOOK_SECRET, but we
+    // pass them explicitly to mirror the Microsoft provider above.
+    Facebook({
+      clientId: process.env.AUTH_FACEBOOK_ID,
+      clientSecret: process.env.AUTH_FACEBOOK_SECRET,
+    }),
   ],
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
+  callbacks: {
+    // Persist which provider the user signed in with onto the stateless JWT so
+    // the dashboard can label the session ("Signed in with Microsoft" / "…with
+    // Facebook"). `account` is only present on the initial sign-in.
+    jwt({ token, account }) {
+      if (account) token.provider = account.provider
+      return token
+    },
+    session({ session, token }) {
+      session.provider = token.provider
+      return session
+    },
+  },
 })
