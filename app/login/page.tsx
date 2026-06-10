@@ -65,14 +65,6 @@ function FacebookLogo() {
   )
 }
 
-function ComingSoonBadge() {
-  return (
-    <span className="ml-auto rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-      Coming soon
-    </span>
-  )
-}
-
 export default async function LoginPage() {
   // Already signed in? Skip the login screen.
   const session = await auth()
@@ -121,18 +113,21 @@ export default async function LoginPage() {
             <span className="h-px flex-1 bg-black/[.08] dark:bg-white/[.145]" />
           </div>
 
-          {/* Google — not yet enabled */}
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title="Coming soon"
-            className="flex h-11 w-full cursor-not-allowed items-center gap-3 rounded-lg border border-black/[.08] bg-white px-4 text-sm font-medium text-zinc-700 opacity-60 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-300"
+          {/* Google — a live secondary provider */}
+          <form
+            action={async () => {
+              "use server"
+              await signIn("google", { redirectTo: "/dashboard" })
+            }}
           >
-            <GoogleLogo />
-            Continue with Google
-            <ComingSoonBadge />
-          </button>
+            <button
+              type="submit"
+              className="flex h-11 w-full items-center gap-3 rounded-lg border border-black/[.08] bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/[.06]"
+            >
+              <GoogleLogo />
+              Continue with Google
+            </button>
+          </form>
 
           {/* Facebook — the live secondary provider */}
           <form
