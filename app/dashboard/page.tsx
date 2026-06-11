@@ -36,6 +36,7 @@ export default async function DashboardPage() {
     "microsoft-entra-id": "Microsoft",
     google: "Google",
     facebook: "Facebook",
+    github: "GitHub",
   }
   const providerLabel = session.provider
     ? PROVIDER_LABELS[session.provider]
