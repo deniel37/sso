@@ -90,6 +90,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
+      // Force GitHub's account picker on every sign-in. GitHub added support for
+      // the standard `prompt=select_account` (June 2024); with it, the picker
+      // shows even when a single account is already signed in to github.com,
+      // instead of silently reusing that session. Mirrors Microsoft/Google.
+      // (Deep-merges into GitHub's default authorization, so the default
+      // `read:user user:email` scope is preserved.)
+      authorization: { params: { prompt: "select_account" } },
     }),
   ],
   session: { strategy: "jwt" },
