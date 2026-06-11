@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
+import GitHub from "next-auth/providers/github"
 
 /**
  * Auth.js (NextAuth v5) configuration — the single source of truth for auth.
@@ -80,6 +81,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           image: picture && !picture.is_silhouette ? picture.url : null,
         }
       },
+    }),
+
+    // GitHub is OAuth2 (not OIDC): no issuer. Its default userinfo handler already
+    // falls back to /user/emails for accounts without a public email, and the
+    // default profile maps the durable avatars.githubusercontent.com URL to
+    // `image` — so, like Google, no userinfo/profile override is needed.
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
   ],
   session: { strategy: "jwt" },
