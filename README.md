@@ -153,7 +153,7 @@ is **no** issuer variable:
 
 ```env
 # GitHub — from your GitHub OAuth App.
-AUTH_GITHUB_ID=<your OAuth App client ID>
+AUTH_GITHUB_ID=Ov23lioiEqlkmCc3nMKN
 AUTH_GITHUB_SECRET=<your client secret VALUE — keep only in .env.local>
 ```
 
@@ -167,13 +167,21 @@ AUTH_GITHUB_SECRET=<your client secret VALUE — keep only in .env.local>
 
 ## GitHub / OAuth App setup
 
+📄 **Full walkthrough with screenshots:** [GitHub SSO setup doc](https://docs.google.com/document/d/1s-OEYmmrkkrsl7CYh2RJmoIXupymskdZ1Yn7RaVcRc0/edit?tab=t.mpjcprhw9low#heading=h.66d8vy4pocc)
+
 Quick summary of the steps:
 
-1. Sign in to GitHub and open [github.com/settings/developers](https://github.com/settings/developers).
-2. Select **OAuth Apps**, then **New OAuth App**.
-3. Provide an **Application name**.
-4. Set the **Homepage URL**: `http://localhost:3000`
-5. Set the **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (a mismatch causes a `redirect_uri_mismatch` error).
-6. Click **Register application**.
-7. Copy the **Client ID** → `AUTH_GITHUB_ID` in `.env.local`.
-8. Click **Generate a new client secret**, then copy the value (shown once) → `AUTH_GITHUB_SECRET` in `.env.local`.
+1. Create a GitHub account and sign in to [github.com](https://github.com).
+2. Go to your **Dashboard**.
+3. Click the **user navigation** button (your avatar) in the upper-right corner.
+4. Select **Settings**.
+5. Scroll down to **Developer settings** in the left sidebar.
+6. Select **OAuth Apps** in the left panel.
+7. Click the **New OAuth App** button.
+8. Provide the **Application name**.
+9. Provide the **Homepage URL**: `http://localhost:3000`
+10. Provide the **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (a mismatch causes a `redirect_uri_mismatch` error).
+11. Click the **Register application** button.
+12. Copy the **Client ID** → `AUTH_GITHUB_ID` in `.env.local`.
+13. Click **Generate a new client secret**.
+14. Copy the **Client secret** (shown only once) → `AUTH_GITHUB_SECRET` in `.env.local`.
