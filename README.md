@@ -144,3 +144,36 @@ Quick summary of the steps:
 22. Open **App settings → Basic** in the left panel.
 23. Copy the **App ID** → `AUTH_FACEBOOK_ID`, then click **Show** and copy the **App Secret** → `AUTH_FACEBOOK_SECRET` in `.env.local`.
 24. Keep the app in **Development** mode for local testing — sign-in now works end-to-end. (Going Live later requires an HTTPS redirect URI and App Review for `email`.)
+
+
+# GitHub Environment Variables
+
+All values live in `.env.local` (never commit real secrets). GitHub is OAuth2, so there
+is **no** issuer variable:
+
+```env
+# GitHub — from your GitHub OAuth App.
+AUTH_GITHUB_ID=<your OAuth App client ID>
+AUTH_GITHUB_SECRET=<your client secret VALUE — keep only in .env.local>
+```
+
+### What each variable means
+
+| Variable | What it is | Where to get it |
+| --- | --- | --- |
+| `AUTH_GITHUB_ID` | The **Client ID** of your GitHub OAuth App. Public, not a secret. | [github.com/settings/developers](https://github.com/settings/developers) → **OAuth Apps** → your app. |
+| `AUTH_GITHUB_SECRET` | The OAuth App **Client secret**. **Highly sensitive** — treat it like a password. | Same app page → **Generate a new client secret** → copy the value (shown once). |
+
+
+## GitHub / OAuth App setup
+
+Quick summary of the steps:
+
+1. Sign in to GitHub and open [github.com/settings/developers](https://github.com/settings/developers).
+2. Select **OAuth Apps**, then **New OAuth App**.
+3. Provide an **Application name**.
+4. Set the **Homepage URL**: `http://localhost:3000`
+5. Set the **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (a mismatch causes a `redirect_uri_mismatch` error).
+6. Click **Register application**.
+7. Copy the **Client ID** → `AUTH_GITHUB_ID` in `.env.local`.
+8. Click **Generate a new client secret**, then copy the value (shown once) → `AUTH_GITHUB_SECRET` in `.env.local`.
